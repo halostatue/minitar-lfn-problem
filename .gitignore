@@ -2,3 +2,4 @@
 .ruby-version
 Gemfile.lock
 tar_extracted
+archive.tar
