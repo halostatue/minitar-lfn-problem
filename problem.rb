@@ -16,5 +16,7 @@ files_in_dest = Dir.chdir(tar_extracted) { Dir["**/*"].sort }
 source_only = files_in_source - files_in_dest
 
 puts "Files only present in source dir:"
-source_only.each { |name| puts "  #{name }" }
+source_only.each { |name| puts "  #{name}" }
 
+puts "Files only present in dest dir:"
+(files_in_dest - files_in_source).each { |name| puts "  #{name}" }
