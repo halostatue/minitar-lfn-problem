@@ -1,6 +1,5 @@
 !*.gz
 .bundle
 .ruby-version
-Gemfile.lock
-tar_extracted
-archive.tar
+/result-*
+*.tar

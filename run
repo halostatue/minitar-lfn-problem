@@ -1,0 +1,65 @@
+#! /usr/bin/env ruby
+
+require "bundler/inline"
+
+gemfile do
+  source "https://rubygems.org"
+  gem "minitar", "~> 1.0"
+end
+
+def fail(message)
+  warn message
+  exit 1
+end
+
+def resolve_test(arg)
+  Dir.glob("*").sort.each do
+    next unless File.directory?(_1)
+    next if _1.start_with?("result-")
+
+    if _1 == arg || _1.match?(arg)
+      return [_1, _1.sub(/^files-/, "result-")]
+    end
+  end
+
+  fail "Cannot resolve arg: #{arg.inspect}"
+end
+
+if ARGV.empty?
+  fail "Test argument required"
+end
+
+verbose = ARGV.find { _1 == "--verbose" || _1 == "-V" }
+ARGV.delete_if { _1 == "--verbose" || _1 == "-V" }
+
+src, dst = resolve_test(ARGV[0])
+tar = "#{dst}.tar"
+
+puts "Packing #{src} as #{tar}" if verbose
+
+FileUtils.rm_f(tar) if File.exist?(tar)
+FileUtils.rm_rf(dst) if File.directory?(dst)
+
+File.open(tar, "wb") do |tarball|
+  Dir.chdir(src) do
+    Minitar.pack(".", tarball) do
+      puts "#{_1}: #{_2}" if verbose
+    end
+  end
+end
+
+Minitar.unpack(File.open(tar, "rb"), dst) do
+  puts "#{_1}: #{_2}" if verbose
+end
+
+in_src = Dir.chdir(src) { Dir["**/*"].sort }
+in_dst = Dir.chdir(dst) { Dir["**/*"].sort }
+
+only_src = in_src - in_dst
+only_dst = in_dst - in_src
+
+puts "Files only present in source #{src}:"
+only_src.each { puts "  #{_1}" }
+
+puts "Files only present in dest #{dst}:"
+only_dst.each { puts "  #{_1}" }
